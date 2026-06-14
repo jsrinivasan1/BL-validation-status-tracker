@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<rect width="100" height="100" rx="14" fill="#101826"/>
+<rect x="30" y="58" width="9" height="14" rx="2" fill="#2f8f5b"/>
+<rect x="45.5" y="46" width="9" height="26" rx="2" fill="#3f78a8"/>
+<rect x="61" y="34" width="9" height="38" rx="2" fill="#6ea8e6"/>
+<rect x="30" y="28" width="26" height="4" rx="2" fill="#aeb9c7"/>
+<rect x="30" y="36" width="16" height="4" rx="2" fill="#5a6675"/>
+</svg>
+</template>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{background:#eef1f4;font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;color:#14181d;-webkit-font-smoothing:antialiased}
+    h1,h2,h3{margin:0}
+    input[type=range]{accent-color:#2563a8}
+    table{border-collapse:collapse}
+    ::-webkit-scrollbar{height:10px;width:10px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#cdd4dc;border-radius:6px}
+  </style>
+  <script src="economies.js"></script>
+</helmet>
+<div style="max-width:1340px;margin:0 auto;padding:30px 32px 90px">
+
+  <header style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding-bottom:22px;border-bottom:1px solid #dde2e8;margin-bottom:26px">
+    <div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:#7a8696;margin-bottom:9px">DMP Portal · Data Validation Tracker</div>
+      <h1 style="font-size:29px;font-weight:700;letter-spacing:-.02em;line-height:1.12">Property Transfer &amp; Construction Permits</h1>
+      <div style="margin-top:9px;font-size:13.5px;color:#3c4654">Data as of <strong style="font-weight:600">{{ asOfStr }}</strong> · 164 economies · two questionnaires each · attributed by DV analyst</div>
+      <div style="margin-top:13px;display:flex;align-items:center;gap:12px">
+        <button onClick="{{ openUpload }}" style="display:inline-flex;align-items:center;gap:7px;font-family:inherit;font-size:13px;font-weight:600;color:#fff;background:#2563a8;border:0;border-radius:9px;padding:9px 15px;cursor:pointer">
+          <span style="font-size:14px">↑</span> Update data from portal
+        </button>
+        <sc-if value="{{ hasOverride }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ resetData }}" style="font-family:inherit;font-size:12.5px;color:#7a8696;background:transparent;border:0;cursor:pointer;text-decoration:underline">Reset to published</button>
+        </sc-if>
+      </div>
+    </div>
+    <div style="display:flex;gap:13px;flex-shrink:0">
+      <div style="background:#14181d;color:#fff;border-radius:12px;padding:15px 20px;min-width:150px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9aa7b6;margin-bottom:7px">Working days left</div>
+        <div style="display:flex;align-items:baseline;gap:7px"><span style="font-family:'IBM Plex Mono',monospace;font-size:38px;font-weight:600;letter-spacing:-.03em;line-height:1">{{ weekdaysLeft }}</span><span style="font-size:13px;color:#9aa7b6">Mon–Fri</span></div>
+        <div style="font-size:12px;color:#c3ccd6;margin-top:6px">Deadline {{ deadlineStr }}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #dde2e8;border-radius:12px;padding:15px 20px;min-width:150px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7a8696;margin-bottom:7px">Questionnaires left</div>
+        <div style="display:flex;align-items:baseline;gap:7px"><span style="font-family:'IBM Plex Mono',monospace;font-size:38px;font-weight:600;letter-spacing:-.03em;line-height:1;color:#14181d">{{ allRem }}</span><span style="font-size:13px;color:#7a8696">of {{ allTotal }}</span></div>
+        <div style="font-size:12px;color:#5a6675;margin-top:6px">Need <strong style="font-weight:600;color:#c2453a">{{ allReq }}</strong> / working day</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI CARDS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+
+    <div style="background:#fff;border:1px solid #dde2e8;border-radius:13px;padding:19px 21px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
+        <div style="display:flex;align-items:center;gap:9px"><span style="width:11px;height:11px;border-radius:3px;background:#2f8f5b"></span><span style="font-weight:600;font-size:15px">Property Transfer</span></div>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9aa7b6;letter-spacing:.05em">PT</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:11px"><div style="font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1">{{ ptPct }}</div><div style="font-size:13.5px;color:#3c4654">{{ ptDone }} of {{ ptTotal }} done</div></div>
+      <div style="height:8px;border-radius:5px;background:#edf0f3;margin:15px 0;overflow:hidden"><div style="height:100%;border-radius:5px;background:#2f8f5b;width: {{ ptBarW }}"></div></div>
+      <div style="display:flex;gap:22px">
+        <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Remaining</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px">{{ ptRem }}</div></div>
+        <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Need / day</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px;color:#c2453a">{{ ptReq }}</div></div>
+        <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Not started</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px">{{ ptNot }}</div></div>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #dde2e8;border-radius:13px;padding:19px 21px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
+        <div style="display:flex;align-items:center;gap:9px"><span style="width:11px;height:11px;border-radius:3px;background:#3f78a8"></span><span style="font-weight:600;font-size:15px">Construction Permits</span></div>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9aa7b6;letter-spacing:.05em">CP</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:11px"><div style="font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1">{{ cpPct }}</div><div style="font-size:13.5px;color:#3c4654">{{ cpDone }} of {{ cpTotal }} done</div></div>
+      <div style="height:8px;border-radius:5px;background:#edf0f3;margin:15px 0;overflow:hidden"><div style="height:100%;border-radius:5px;background:#3f78a8;width: {{ cpBarW }}"></div></div>
+      <div style="display:flex;gap:22px">
+        <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Remaining</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px">{{ cpRem }}</div></div>
+        <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Need / day</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px;color:#c2453a">{{ cpReq }}</div></div>
+        <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Not started</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px">{{ cpNot }}</div></div>
+      </div>
+    </div>
+
+    <div style="background:#101826;border:1px solid #101826;border-radius:13px;padding:19px 21px;color:#fff">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
+        <div style="display:flex;align-items:center;gap:9px"><span style="width:11px;height:11px;border-radius:3px;background:#6ea8e6"></span><span style="font-weight:600;font-size:15px">Both tracks combined</span></div>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8696aa;letter-spacing:.05em">ALL</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:11px"><div style="font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1;color:#fff">{{ allPct }}</div><div style="font-size:13.5px;color:#aeb9c7">{{ allDone }} of {{ allTotal }} done</div></div>
+      <div style="height:8px;border-radius:5px;background:#26303f;margin:15px 0;overflow:hidden"><div style="height:100%;border-radius:5px;background:#6ea8e6;width: {{ allBarW }}"></div></div>
+      <div style="display:flex;gap:22px">
+        <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#8696aa;margin-bottom:3px">Remaining</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px;color:#fff">{{ allRem }}</div></div>
+        <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#8696aa;margin-bottom:3px">Need / day</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px;color:#ff9d8a">{{ allReq }}</div></div>
+        <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#8696aa;margin-bottom:3px">Not started</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px;color:#fff">{{ allNot }}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORECASTER / SIMULATOR -->
+  <section style="margin-top:24px;background:#fff;border:1px solid #dde2e8;border-radius:14px;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #eceff3">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Forecaster</div>
+        <h2 style="font-size:18px;font-weight:600;letter-spacing:-.01em">Capacity &amp; deadline simulator</h2>
+      </div>
+      <div style="display:flex;gap:0;border:1px solid #dde2e8;border-radius:9px;overflow:hidden">
+        <button onClick="{{ setTrackPT }}" style="border:0;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:9px 16px;background: {{ ptTabBg }};color: {{ ptTabFg }}">PT</button>
+        <button onClick="{{ setTrackCP }}" style="border:0;border-left:1px solid #dde2e8;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:9px 16px;background: {{ cpTabBg }};color: {{ cpTabFg }}">CP</button>
+        <button onClick="{{ setTrackBoth }}" style="border:0;border-left:1px solid #dde2e8;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:9px 16px;background: {{ bothTabBg }};color: {{ bothTabFg }}">Both</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:340px 1fr">
+      <div style="padding:22px;border-right:1px solid #eceff3">
+        <div style="margin-bottom:26px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px">
+            <label style="font-size:13.5px;font-weight:500;color:#2b3340">Output per analyst</label>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:#2563a8">{{ rateStr }}<span style="font-size:11px;color:#7a8696;font-weight:400"> /day</span></span>
+          </div>
+          <input type="range" min="0.25" max="4" step="0.05" value="{{ rate }}" onInput="{{ onRate }}" style="width:100%;height:4px">
+          <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9aa7b6;margin-top:6px"><span>0.25</span><span>questionnaires closed / day</span><span>4.0</span></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
+            <label style="font-size:13.5px;font-weight:500;color:#2b3340">Billable days to Jul 15</label>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#2563a8">{{ existingDaysStr }}<span style="font-size:11px;color:#7a8696;font-weight:400"> analyst-days</span></span>
+          </div>
+          <div style="font-size:11.5px;color:#9aa7b6;margin-bottom:11px">{{ weekdaysLeft }} weekdays remain — set each person's actual billable days</div>
+          <div style="display:flex;flex-direction:column;gap:7px;max-height:236px;overflow:auto;padding-right:4px">
+            <sc-for list="{{ dayRows }}" as="d" hint-placeholder-count="9">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <div style="display:flex;align-items:center;gap:8px"><span style="width:23px;height:23px;border-radius:6px;background: {{ d.avBg }};color: {{ d.avFg }};font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ d.initials }}</span><span style="font-size:13px;font-weight:500">{{ d.name }}</span></div>
+                <input type="number" min="0" max="40" value="{{ d.days }}" onInput="{{ d.onChange }}" style="width:54px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:center;padding:5px 6px;border:1px solid #dde2e8;border-radius:7px;outline:none;color:#14181d">
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;padding-top:16px;border-top:1px dashed #e3e7ec">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px">
+            <label style="font-size:13.5px;font-weight:500;color:#2b3340">Add new hires</label>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#2563a8">{{ extraPeople }}<span style="font-size:11px;color:#7a8696;font-weight:400"> ×</span> {{ extraDays }}<span style="font-size:11px;color:#7a8696;font-weight:400"> days</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <input type="range" min="0" max="12" step="1" value="{{ extraPeople }}" onInput="{{ onExtraPeople }}" style="flex:1;height:4px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#7a8696">days each<input type="number" min="0" max="40" value="{{ extraDays }}" onInput="{{ onExtraDays }}" style="width:48px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:center;padding:5px 6px;border:1px solid #dde2e8;border-radius:7px;outline:none;color:#14181d"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;padding-top:16px;border-top:1px dashed #e3e7ec;display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:7px">Total capacity in window</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-.02em">{{ simCapStr }}<span style="font-size:13px;color:#7a8696;font-weight:400"> closeable</span></div>
+            <div style="font-size:11.5px;color:#9aa7b6;margin-top:4px">{{ totalDaysStr }} analyst-days × {{ rateStr }}/day</div>
+          </div>
+          <button onClick="{{ resetDays }}" style="font-family:inherit;font-size:11.5px;color:#5a6675;background:#f2f5f8;border:1px solid #e3e7ec;border-radius:7px;padding:6px 11px;cursor:pointer">Reset</button>
+        </div>
+      </div>
+
+      <div style="padding:22px">
+        <div style="border:1px solid {{ verdictBd }};background: {{ verdictBg }};border-radius:11px;padding:16px 18px;margin-bottom:18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px"><span style="width:9px;height:9px;border-radius:50%;background: {{ verdictFg }}"></span><span style="font-weight:700;font-size:16px;color: {{ verdictFg }}">{{ verdictTitle }}</span></div>
+          <div style="font-size:13.5px;color:#3c4654;padding-left:19px">{{ verdictDetail }}</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+          <div style="background:#f7f9fb;border:1px solid #eceff3;border-radius:10px;padding:14px 15px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:7px">{{ simTrackLabel }} remaining</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;letter-spacing:-.02em">{{ simRemStr }}</div>
+          </div>
+          <div style="background:#f7f9fb;border:1px solid #eceff3;border-radius:10px;padding:14px 15px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:7px">Analyst-days available</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;letter-spacing:-.02em">{{ totalDaysStr }}</div>
+          </div>
+          <div style="background:#f7f9fb;border:1px solid #eceff3;border-radius:10px;padding:14px 15px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:7px">Closeable at this rate</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;letter-spacing:-.02em">{{ simCapStr }}</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+          <div style="background:#101826;border-radius:10px;padding:15px 17px;color:#fff">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#8696aa;margin-bottom:7px">Analyst-days short of Jul 15</div>
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-.02em">{{ recValueStr }}</span><span style="font-size:13px;color:#aeb9c7">more needed (current team)</span></div>
+            <div style="font-size:12.5px;color: {{ recColor }};margin-top:6px;font-weight:500">{{ recNote }}</div>
+          </div>
+          <div style="background:#f7f9fb;border:1px solid #eceff3;border-radius:10px;padding:15px 17px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7a8696;margin-bottom:7px">Or, output per analyst-day</div>
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-.02em;color:#2563a8">{{ rateNeededStr }}</span><span style="font-size:13px;color:#5a6675">each / day required</span></div>
+            <div style="font-size:12.5px;color:#7a8696;margin-top:6px">on current days · vs {{ rateStr }} modeled</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section style="margin-top:24px;background:#fff;border:1px solid #dde2e8;border-radius:14px;padding:20px 22px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Pipeline</div>
+        <h2 style="font-size:18px;font-weight:600;letter-spacing:-.01em">Where every economy sits</h2>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px 18px;max-width:560px;justify-content:flex-end">
+        <sc-for list="{{ legendItems }}" as="g" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:7px"><span style="width:11px;height:11px;border-radius:3px;background: {{ g.color }}"></span><span style="font-size:12.5px;color:#3c4654">{{ g.label }}</span></div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+      <div style="width:150px;flex-shrink:0"><div style="font-weight:600;font-size:14px">Property Transfer</div><div style="font-size:12px;color:#7a8696">{{ ptDone }} done · {{ ptPipe }} in pipeline · {{ ptNot }} not started</div></div>
+      <div style="flex:1;display:flex;height:30px;border-radius:7px;overflow:hidden;background:#edf0f3">
+        <sc-for list="{{ ptStages }}" as="s" hint-placeholder-count="5">
+          <div title="{{ s.title }}" style="height:100%;width: {{ s.w }};background: {{ s.color }};display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color: {{ s.txt }};overflow:hidden">{{ s.shown }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="width:150px;flex-shrink:0"><div style="font-weight:600;font-size:14px">Construction Permits</div><div style="font-size:12px;color:#7a8696">{{ cpDone }} done · {{ cpPipe }} in pipeline · {{ cpNot }} not started</div></div>
+      <div style="flex:1;display:flex;height:30px;border-radius:7px;overflow:hidden;background:#edf0f3">
+        <sc-for list="{{ cpStages }}" as="s" hint-placeholder-count="5">
+          <div title="{{ s.title }}" style="height:100%;width: {{ s.w }};background: {{ s.color }};display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color: {{ s.txt }};overflow:hidden">{{ s.shown }}</div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section style="margin-top:24px;background:#fff;border:1px solid #dde2e8;border-radius:14px;padding:20px 22px 8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Team</div>
+        <h2 style="font-size:18px;font-weight:600;letter-spacing:-.01em">Analyst workload &amp; progress</h2>
+      </div>
+      <div style="font-size:12px;color:#7a8696">click a column to sort</div>
+    </div>
+    <table style="width:100%;font-size:13.5px">
+      <thead>
+        <tr style="text-align:left;color:#7a8696;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase">
+          <th onClick="{{ sortName }}" style="cursor:pointer;padding:0 10px 10px 0;font-weight:500">Analyst{{ nameArrow }}</th>
+          <th onClick="{{ sortEcon }}" style="cursor:pointer;padding:0 10px 10px;font-weight:500;text-align:right">Economies{{ econArrow }}</th>
+          <th style="padding:0 10px 10px;font-weight:500">Property Transfer</th>
+          <th style="padding:0 10px 10px;font-weight:500">Construction Permits</th>
+          <th onClick="{{ sortRem }}" style="cursor:pointer;padding:0 10px 10px;font-weight:500;text-align:right">Left{{ remArrow }}</th>
+          <th onClick="{{ sortPct }}" style="cursor:pointer;padding:0 0 10px 10px;font-weight:500;text-align:right">Complete{{ pctArrow }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{ leaderRows }}" as="r" hint-placeholder-count="10">
+          <tr style="border-top:1px solid #eef1f4">
+            <td style="padding:11px 10px 11px 0"><div style="display:flex;align-items:center;gap:9px"><span style="width:26px;height:26px;border-radius:7px;background: {{ r.avBg }};color: {{ r.avFg }};font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ r.initials }}</span><span style="font-weight:600">{{ r.name }}</span></div></td>
+            <td style="padding:11px 10px;text-align:right;font-family:'IBM Plex Mono',monospace;color:#3c4654">{{ r.econ }}</td>
+            <td style="padding:11px 10px;width:190px"><div style="display:flex;align-items:center;gap:9px"><div style="flex:1;height:7px;border-radius:4px;background:#edf0f3;overflow:hidden"><div style="height:100%;background:#2f8f5b;width: {{ r.ptW }}"></div></div><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5a6675;width:42px;text-align:right">{{ r.ptText }}</span></div></td>
+            <td style="padding:11px 10px;width:190px"><div style="display:flex;align-items:center;gap:9px"><div style="flex:1;height:7px;border-radius:4px;background:#edf0f3;overflow:hidden"><div style="height:100%;background:#3f78a8;width: {{ r.cpW }}"></div></div><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5a6675;width:42px;text-align:right">{{ r.cpText }}</span></div></td>
+            <td style="padding:11px 10px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color: {{ r.remColor }}">{{ r.rem }}</td>
+            <td style="padding:11px 0 11px 10px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600">{{ r.pctLabel }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- EXPLORER -->
+  <section style="margin-top:24px;background:#fff;border:1px solid #dde2e8;border-radius:14px;padding:20px 22px 10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#7a8696;margin-bottom:3px">Detail</div>
+        <h2 style="font-size:18px;font-weight:600;letter-spacing:-.01em">Economy explorer <span style="font-weight:400;color:#9aa7b6;font-size:14px">· {{ shownCount }} of 164</span></h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <input type="text" value="{{ search }}" onInput="{{ onSearch }}" placeholder="Search economy…" style="font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #dde2e8;border-radius:8px;width:180px;outline:none;color:#14181d">
+        <select value="{{ analyst }}" onChange="{{ onAnalyst }}" style="font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #dde2e8;border-radius:8px;outline:none;background:#fff;color:#14181d;cursor:pointer">
+          <sc-for list="{{ analystOptions }}" as="o" hint-placeholder-count="11">
+            <option value="{{ o.value }}">{{ o.label }}</option>
+          </sc-for>
+        </select>
+        <button onClick="{{ toggleAtRisk }}" style="font-family:inherit;font-size:13px;font-weight:600;padding:8px 14px;border:1px solid {{ atRiskBd }};border-radius:8px;cursor:pointer;background: {{ atRiskBg }};color: {{ atRiskFg }}">{{ atRiskLabel }}</button>
+      </div>
+    </div>
+    <table style="width:100%;font-size:13.5px">
+      <thead>
+        <tr style="text-align:left;color:#7a8696;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase">
+          <th style="padding:0 10px 10px 0;font-weight:500">Economy</th>
+          <th style="padding:0 10px 10px;font-weight:500">DV Analyst</th>
+          <th style="padding:0 10px 10px;font-weight:500">Approach</th>
+          <th style="padding:0 10px 10px;font-weight:500">PT status</th>
+          <th style="padding:0 0 10px 10px;font-weight:500">CP status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{ explorerRows }}" as="e" hint-placeholder-count="14">
+          <tr style="border-top:1px solid #eef1f4">
+            <td style="padding:10px 10px 10px 0;font-weight:600">{{ e.economy }}</td>
+            <td style="padding:10px;color:#3c4654">{{ e.analyst }}</td>
+            <td style="padding:10px;color:#5a6675;font-size:12.5px">{{ e.approach }}</td>
+            <td style="padding:10px"><span style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;background: {{ e.ptBg }};color: {{ e.ptFg }}">{{ e.ptLabel }}</span></td>
+            <td style="padding:10px 0 10px 10px"><span style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;background: {{ e.cpBg }};color: {{ e.cpFg }}">{{ e.cpLabel }}</span></td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    <div style="padding:14px 0 6px;font-size:12px;color:#9aa7b6">Done = Initiate Follow up · Submitted for Review · Reviewed by Supervisor · Submit to Close (No Followup)</div>
+  </section>
+
+  <!-- UPLOAD MODAL -->
+  <sc-if value="{{ uploadOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeUpload }}" style="position:fixed;inset:0;background:rgba(16,24,38,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:24px">
+      <div onClick="{{ stopProp }}" style="background:#fff;border-radius:16px;max-width:580px;width:100%;padding:26px 28px;box-shadow:0 24px 60px rgba(0,0,0,.32)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#7a8696;margin-bottom:4px">Refresh from DMP portal</div>
+            <h2 style="font-size:20px;font-weight:700;letter-spacing:-.01em">Update status data</h2>
+          </div>
+          <button onClick="{{ closeUpload }}" style="font-family:inherit;font-size:20px;line-height:1;color:#9aa7b6;background:transparent;border:0;cursor:pointer;padding:2px 6px">×</button>
+        </div>
+        <p style="font-size:13px;color:#5a6675;line-height:1.55;margin:6px 0 18px">Export the two status lists from the portal and drop them in below. Economies are matched by name; your analyst allocation and billable-day edits are kept. Upload one or both tracks.</p>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <label style="display:block;border:1.5px dashed {{ ptSlotBd }};background: {{ ptSlotBg }};border-radius:11px;padding:14px 16px;cursor:pointer">
+            <input type="file" accept=".csv,text/csv" onChange="{{ onPTFile }}" style="display:none">
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:11px;height:11px;border-radius:3px;background:#2f8f5b;flex-shrink:0"></span><span style="font-weight:600;font-size:14px">Property Transfer CSV</span></div>
+            <div style="font-size:12px;color:#5a6675;margin-top:6px;padding-left:21px;word-break:break-word">{{ ptStatusLine }}</div>
+          </label>
+          <label style="display:block;border:1.5px dashed {{ cpSlotBd }};background: {{ cpSlotBg }};border-radius:11px;padding:14px 16px;cursor:pointer">
+            <input type="file" accept=".csv,text/csv" onChange="{{ onCPFile }}" style="display:none">
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:11px;height:11px;border-radius:3px;background:#3f78a8;flex-shrink:0"></span><span style="font-weight:600;font-size:14px">Construction Permits CSV</span></div>
+            <div style="font-size:12px;color:#5a6675;margin-top:6px;padding-left:21px;word-break:break-word">{{ cpStatusLine }}</div>
+          </label>
+        </div>
+
+        <sc-for list="{{ warnings }}" as="w" hint-placeholder-count="0">
+          <div style="margin-top:12px;background:#fdf4e7;border:1px solid #f0dcb8;border-radius:9px;padding:10px 13px;font-size:12px;color:#8a5a12;line-height:1.45">⚠ {{ w.text }}</div>
+        </sc-for>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:22px;padding-top:18px;border-top:1px solid #eceff3">
+          <button onClick="{{ downloadDataFile }}" style="font-family:inherit;font-size:12.5px;font-weight:600;color:#2563a8;background:#eef4fb;border:1px solid #d4e3f2;border-radius:9px;padding:10px 14px;cursor:pointer">↓ Download economies.js for GitHub</button>
+          <div style="display:flex;gap:10px">
+            <button onClick="{{ closeUpload }}" style="font-family:inherit;font-size:13px;font-weight:600;color:#5a6675;background:#f2f5f8;border:1px solid #e3e7ec;border-radius:9px;padding:10px 16px;cursor:pointer">Cancel</button>
+            <button onClick="{{ applyUpload }}" style="font-family:inherit;font-size:13px;font-weight:600;color:#fff;background: {{ applyBg }};border:0;border-radius:9px;padding:10px 18px;cursor: {{ applyCursor }}">Apply update</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { rate: 1, workDays: {}, extraPeople: 0, extraDays: 23, simTrack: 'both', sortKey: 'rem', sortDir: -1, search: '', analyst: 'all', atRisk: false, ready: false,
+    economies: null, asOf: null, uploadOpen: false, ptPending: null, cpPending: null };
+
+  componentDidMount() {
+    const init = () => {
+      let economies = (window.DMP_DATA || []).slice();
+      let asOf = null;
+      try {
+        const raw = localStorage.getItem('dmp_data_v1');
+        if (raw) { const o = JSON.parse(raw); if (o && o.economies && o.economies.length) { economies = o.economies; asOf = o.asOf || null; } }
+      } catch (_) {}
+      this.setState({ ready: true, economies, asOf });
+    };
+    if (window.DMP_DATA) { init(); return; }
+    let n = 0;
+    this._iv = setInterval(() => {
+      n++;
+      if (window.DMP_DATA) { clearInterval(this._iv); init(); }
+      else if (n > 50) { clearInterval(this._iv); init(); }
+    }, 80);
+  }
+  componentWillUnmount() { if (this._iv) clearInterval(this._iv); }
+
+  // ---- CSV upload ----
+  splitCSVLine(line) {
+    const out = []; let cur = '', q = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { if (q && line[i + 1] === '"') { cur += '"'; i++; } else q = !q; }
+      else if (ch === ',' && !q) { out.push(cur); cur = ''; }
+      else cur += ch;
+    }
+    out.push(cur); return out;
+  }
+  parseStatusCSV(text) {
+    const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim().length);
+    if (!lines.length) return { map: {}, count: 0, topic: '' };
+    const header = this.splitCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+    const ei = header.findIndex(h => h === 'economy');
+    const si = header.findIndex(h => h === 'status');
+    const ti = header.findIndex(h => h === 'topic');
+    const map = {}; let topic = '', count = 0;
+    for (let i = 1; i < lines.length; i++) {
+      const c = this.splitCSVLine(lines[i]);
+      if (ei < 0 || c[ei] == null || !c[ei].trim()) continue;
+      map[c[ei].trim()] = si >= 0 ? (c[si] || '').trim() : '';
+      if (ti >= 0 && c[ti] && !topic) topic = c[ti].trim();
+      count++;
+    }
+    return { map, count, topic };
+  }
+  handleFile(track, file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const r = this.parseStatusCSV(reader.result);
+      const pending = { map: r.map, count: r.count, topic: r.topic, name: file.name };
+      this.setState(track === 'pt' ? { ptPending: pending } : { cpPending: pending });
+    };
+    reader.readAsText(file);
+  }
+  applyUpload() {
+    const base = (this.state.economies || window.DMP_DATA || []).map(e => Object.assign({}, e));
+    const pt = this.state.ptPending, cp = this.state.cpPending;
+    base.forEach(e => {
+      if (pt && pt.map[e.economy] != null) e.pt = pt.map[e.economy];
+      if (cp && cp.map[e.economy] != null) e.cp = cp.map[e.economy];
+    });
+    const asOf = new Date().toISOString().slice(0, 10);
+    try { localStorage.setItem('dmp_data_v1', JSON.stringify({ v: 1, asOf, economies: base })); } catch (_) {}
+    this.setState({ economies: base, asOf, uploadOpen: false, ptPending: null, cpPending: null });
+  }
+  downloadDataFile() {
+    const data = this.state.economies || window.DMP_DATA || [];
+    const done = window.DMP_DONE_STATUSES || [];
+    const content = 'window.DMP_DATA = ' + JSON.stringify(data) + ';\nwindow.DMP_DONE_STATUSES = ' + JSON.stringify(done) + ';\n';
+    const blob = new Blob([content], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'economies.js';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+  resetData() {
+    try { localStorage.removeItem('dmp_data_v1'); } catch (_) {}
+    this.setState({ economies: (window.DMP_DATA || []).slice(), asOf: null, ptPending: null, cpPending: null });
+  }
+
+  sod(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+  isWd(d) { const g = d.getDay(); return g >= 1 && g <= 5; }
+  countWeekdays(from, to) { let c = 0; const end = this.sod(to); let d = this.sod(from); while (d < end) { d.setDate(d.getDate() + 1); if (d <= end && this.isWd(d)) c++; } return c; }
+  addWeekdays(from, n) { let d = this.sod(from); let a = 0; let guard = 0; while (a < n && guard < 5000) { d.setDate(d.getDate() + 1); guard++; if (this.isWd(d)) a++; } return d; }
+  fmtDate(d) { return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }
+  initials(name) { const p = name.trim().split(/\s+/); return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase(); }
+
+  statusMeta(s, isDone) {
+    if (isDone(s)) return { bg: '#e7f4ec', fg: '#1c6b41' };
+    switch (s) {
+      case 'Not Started': return { bg: '#fbeae8', fg: '#9a2f27' };
+      case 'In Progress': return { bg: '#e8f0f8', fg: '#1f4e79' };
+      case 'Ready for AI': return { bg: '#f8efdc', fg: '#8a5a12' };
+      case 'Begin Data Validation': return { bg: '#f3eedb', fg: '#6f5d12' };
+      default: return { bg: '#eef1f4', fg: '#5a6675' };
+    }
+  }
+
+  setSort(k) {
+    this.setState(s => {
+      if (s.sortKey === k) return { sortDir: -s.sortDir };
+      return { sortKey: k, sortDir: k === 'name' ? 1 : -1 };
+    });
+  }
+
+  renderVals() {
+    const DONE = window.DMP_DONE_STATUSES || ["Initiate Follow up", "Submitted for Review", "Submit to Close - No Followup", "Reviewed by Supervisor"];
+    const isDone = s => DONE.indexOf(s) >= 0;
+    const data = ((this.state.economies && this.state.economies.length) ? this.state.economies : (window.DMP_DATA || [])).slice();
+    const N = data.length || 164;
+
+    // dates
+    const asOf = this.sod(new Date()); // today, for the working-day countdown
+    const dataAsOfStr = this.state.asOf
+      ? new Date(this.state.asOf + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+      : this.fmtDate(asOf);
+    const deadline = this.sod(new Date(2026, 6, 15)); // Jul 15 2026
+    let weekdaysLeft = this.countWeekdays(asOf, deadline);
+    if (weekdaysLeft < 0) weekdaysLeft = 0;
+    const den = weekdaysLeft > 0 ? weekdaysLeft : 1;
+
+    // per-track tallies
+    const tally = key => {
+      let done = 0, not = 0;
+      data.forEach(e => { if (isDone(e[key])) done++; if (e[key] === 'Not Started') not++; });
+      const rem = N - done;
+      return { done, not, rem, pipe: N - done - not, pct: N ? done / N : 0, req: rem / den };
+    };
+    const pt = tally('pt'), cp = tally('cp');
+    const allDone = pt.done + cp.done, allTotal = N * 2, allRem = pt.rem + cp.rem, allNot = pt.not + cp.not;
+    const allReq = allRem / den;
+    const pctStr = x => Math.round(x * 100) + '%';
+
+    // pipeline stages
+    const STAGES = [
+      { key: 'Not Started', label: 'Not started', color: '#c2453a', txt: '#fff' },
+      { key: 'Ready for AI', label: 'Ready for AI', color: '#d8922f', txt: '#fff' },
+      { key: 'Begin Data Validation', label: 'In validation', color: '#c7a330', txt: '#3a2f00' },
+      { key: 'In Progress', label: 'In progress', color: '#3f78a8', txt: '#fff' },
+      { key: '__done', label: 'Done', color: '#2f8f5b', txt: '#fff' },
+    ];
+    const stagesFor = key => STAGES.map(st => {
+      let c = 0;
+      if (st.key === '__done') data.forEach(e => { if (isDone(e[key])) c++; });
+      else data.forEach(e => { if (e[key] === st.key) c++; });
+      const pct = N ? c / N * 100 : 0;
+      return { count: c, title: st.label + ': ' + c, w: pct + '%', color: st.color, txt: st.txt, shown: (pct >= 7 && c > 0) ? String(c) : '' };
+    });
+
+    // leaderboard
+    const byA = {};
+    data.forEach(e => {
+      const a = e.analyst;
+      if (!byA[a]) byA[a] = { name: a, econ: 0, ptDone: 0, cpDone: 0 };
+      byA[a].econ++;
+      if (isDone(e.pt)) byA[a].ptDone++;
+      if (isDone(e.cp)) byA[a].cpDone++;
+    });
+    const avPal = [['#e7eef9', '#1f4e79'], ['#e7f4ec', '#1c6b41'], ['#f8efdc', '#8a5a12'], ['#fbeae8', '#9a2f27'], ['#eee9f7', '#5a3d8a'], ['#e3f1f1', '#1d6a6a']];
+    let leaderRows = Object.values(byA).map((r, i) => {
+      const tot = r.econ * 2, done = r.ptDone + r.cpDone, rem = tot - done, pct = tot ? done / tot : 0;
+      const av = avPal[i % avPal.length];
+      return {
+        name: r.name, initials: this.initials(r.name), avBg: av[0], avFg: av[1], econ: r.econ,
+        ptW: (r.econ ? r.ptDone / r.econ * 100 : 0) + '%', cpW: (r.econ ? r.cpDone / r.econ * 100 : 0) + '%',
+        ptText: r.ptDone + '/' + r.econ, cpText: r.cpDone + '/' + r.econ,
+        rem, remColor: rem >= 18 ? '#c2453a' : '#14181d', pct, pctLabel: Math.round(pct * 100) + '%'
+      };
+    });
+    const sk = this.state.sortKey, sd = this.state.sortDir;
+    leaderRows.sort((a, b) => {
+      let av, bv;
+      if (sk === 'name') { return a.name.localeCompare(b.name) * sd; }
+      if (sk === 'econ') { av = a.econ; bv = b.econ; }
+      else if (sk === 'pct') { av = a.pct; bv = b.pct; }
+      else { av = a.rem; bv = b.rem; }
+      return (av - bv) * sd;
+    });
+    const arrow = k => sk === k ? (sd < 0 ? ' ↓' : ' ↑') : '';
+
+    // explorer
+    const q = this.state.search.trim().toLowerCase();
+    let explorerRows = data.filter(e => {
+      if (q && e.economy.toLowerCase().indexOf(q) < 0) return false;
+      if (this.state.analyst !== 'all' && e.analyst !== this.state.analyst) return false;
+      if (this.state.atRisk && !(e.pt === 'Not Started' || e.cp === 'Not Started')) return false;
+      return true;
+    }).map(e => {
+      const pm = this.statusMeta(e.pt, isDone), cm = this.statusMeta(e.cp, isDone);
+      return { economy: e.economy, analyst: e.analyst, approach: e.approach, ptLabel: e.pt, ptBg: pm.bg, ptFg: pm.fg, cpLabel: e.cp, cpBg: cm.bg, cpFg: cm.fg };
+    });
+    const analystOptions = [{ value: 'all', label: 'All analysts' }].concat(
+      [...new Set(data.map(e => e.analyst))].sort().map(a => ({ value: a, label: a })));
+
+    // ---- simulator: driven by per-analyst billable days ----
+    const rate = this.state.rate, tr = this.state.simTrack;
+    const remMap = { pt: pt.rem, cp: cp.rem, both: allRem };
+    const labelMap = { pt: 'PT', cp: 'CP', both: 'Combined' };
+    const simRem = remMap[tr];
+
+    const analystNames = [...new Set(data.map(e => e.analyst))].sort();
+    const wd = this.state.workDays || {};
+    const dayFor = a => (wd[a] != null ? wd[a] : weekdaysLeft);
+    const existingDays = analystNames.reduce((s, a) => s + dayFor(a), 0);
+    const extraPeople = this.state.extraPeople, extraDays = this.state.extraDays;
+    const newDays = extraPeople * extraDays;
+    const totalDays = existingDays + newDays;
+
+    const cap = rate * totalDays;                 // questionnaires the team can close in the window
+    const surplus = cap - simRem;                 // + = covered
+    const onTrack = surplus >= -1e-9;
+    const daysNeededTotal = rate > 0 ? simRem / rate : Infinity;       // analyst-days the work requires
+    const shortDaysNet = Math.max(0, Math.ceil(daysNeededTotal - totalDays));      // after new hires
+    const shortDaysCurrent = Math.max(0, Math.ceil(daysNeededTotal - existingDays)); // existing team only
+    const rateNeeded = existingDays > 0 ? simRem / existingDays : 0;   // output per analyst-day with current days
+    const dayRef = extraDays > 0 ? extraDays : (weekdaysLeft || 1);
+    const hiresForShort = shortDaysCurrent > 0 ? Math.ceil(shortDaysCurrent / dayRef) : 0;
+
+    const dayRows = analystNames.map((a, i) => {
+      const av = avPal[i % avPal.length];
+      return {
+        name: a, initials: this.initials(a), avBg: av[0], avFg: av[1], days: dayFor(a),
+        onChange: e => {
+          const raw = e.target.value;
+          const v = raw === '' ? 0 : Math.max(0, parseInt(raw) || 0);
+          this.setState(s => ({ workDays: Object.assign({}, s.workDays, { [a]: v }) }));
+        }
+      };
+    });
+
+    let verdictTitle, verdictDetail;
+    if (onTrack) {
+      verdictTitle = 'On track to meet Jul 15';
+      verdictDetail = 'Across ' + totalDays + ' billable analyst-days the team can close ' + Math.round(cap) + ' ' + labelMap[tr].toLowerCase() + ' questionnaires vs ' + simRem + ' remaining — ' + Math.round(surplus) + ' to spare.';
+    } else {
+      verdictTitle = 'Short of Jul 15';
+      verdictDetail = 'Across ' + totalDays + ' billable analyst-days the team can close ' + Math.round(cap) + ' vs ' + simRem + ' remaining — short ' + Math.round(-surplus) + ', i.e. ' + shortDaysNet + ' more analyst-days at ' + rate.toFixed(2) + '/day.';
+    }
+
+    let recValue, recNote, recColor;
+    if (shortDaysCurrent > 0) {
+      recValue = shortDaysCurrent;
+      recNote = '≈ ' + hiresForShort + ' more ' + (hiresForShort === 1 ? 'person' : 'people') + ' at ' + dayRef + ' days each';
+      recColor = '#ff9d8a';
+    } else {
+      recValue = 0; recNote = '✓ current team already has enough days'; recColor = '#7ee0a8';
+    }
+
+    const tab = v => this.state.simTrack === v;
+    const tabBg = v => tab(v) ? '#14181d' : '#fff';
+    const tabFg = v => tab(v) ? '#fff' : '#5a6675';
+
+    // ---- uploader preview ----
+    const ptP = this.state.ptPending, cpP = this.state.cpPending;
+    const baseNames = new Set(data.map(e => e.economy));
+    const matched = (m) => Object.keys(m).filter(n => baseNames.has(n)).length;
+    const doneIn = (m) => Object.values(m).filter(isDone).length;
+    const ptStatusLine = ptP
+      ? (ptP.name + ' · ' + matched(ptP.map) + '/' + ptP.count + ' matched · ' + doneIn(ptP.map) + ' done')
+      : 'Click to choose the Property Transfer CSV';
+    const cpStatusLine = cpP
+      ? (cpP.name + ' · ' + matched(cpP.map) + '/' + cpP.count + ' matched · ' + doneIn(cpP.map) + ' done')
+      : 'Click to choose the Construction Permits CSV';
+    const warnings = [];
+    if (ptP) { const u = Object.keys(ptP.map).filter(n => !baseNames.has(n)); if (u.length) warnings.push({ text: u.length + ' PT economies not in your allocation — skipped: ' + u.slice(0, 4).join(', ') + (u.length > 4 ? '…' : '') }); }
+    if (cpP) { const u = Object.keys(cpP.map).filter(n => !baseNames.has(n)); if (u.length) warnings.push({ text: u.length + ' CP economies not in your allocation — skipped: ' + u.slice(0, 4).join(', ') + (u.length > 4 ? '…' : '') }); }
+    const canApply = !!(ptP || cpP);
+
+    return {
+      asOfStr: dataAsOfStr, deadlineStr: 'Jul 15, 2026', weekdaysLeft,
+      ptPct: pctStr(pt.pct), ptDone: pt.done, ptTotal: N, ptRem: pt.rem, ptNot: pt.not, ptPipe: pt.pipe, ptReq: pt.req.toFixed(1), ptBarW: pt.pct * 100 + '%',
+      cpPct: pctStr(cp.pct), cpDone: cp.done, cpTotal: N, cpRem: cp.rem, cpNot: cp.not, cpPipe: cp.pipe, cpReq: cp.req.toFixed(1), cpBarW: cp.pct * 100 + '%',
+      allPct: pctStr(allDone / allTotal), allDone, allTotal, allRem, allNot, allReq: allReq.toFixed(1), allBarW: (allDone / allTotal * 100) + '%',
+      legendItems: STAGES.map(s => ({ label: s.label, color: s.color })),
+      ptStages: stagesFor('pt'), cpStages: stagesFor('cp'),
+      leaderRows, nameArrow: arrow('name'), econArrow: arrow('econ'), remArrow: arrow('rem'), pctArrow: arrow('pct'),
+      sortName: () => this.setSort('name'), sortEcon: () => this.setSort('econ'), sortRem: () => this.setSort('rem'), sortPct: () => this.setSort('pct'),
+      explorerRows, shownCount: explorerRows.length, analystOptions,
+      search: this.state.search, analyst: this.state.analyst,
+      onSearch: e => this.setState({ search: e.target.value }),
+      onAnalyst: e => this.setState({ analyst: e.target.value }),
+      toggleAtRisk: () => this.setState(s => ({ atRisk: !s.atRisk })),
+      atRiskLabel: this.state.atRisk ? 'Showing at-risk' : 'Only at-risk', atRiskBg: this.state.atRisk ? '#fbeae8' : '#fff', atRiskFg: this.state.atRisk ? '#9a2f27' : '#5a6675', atRiskBd: this.state.atRisk ? '#f1c9c3' : '#dde2e8',
+      rate, rateStr: rate.toFixed(2), onRate: e => this.setState({ rate: parseFloat(e.target.value) }),
+      dayRows, existingDaysStr: String(existingDays), totalDaysStr: String(totalDays),
+      extraPeople, extraDays,
+      onExtraPeople: e => this.setState({ extraPeople: parseInt(e.target.value) || 0 }),
+      onExtraDays: e => this.setState({ extraDays: Math.max(0, parseInt(e.target.value) || 0) }),
+      resetDays: () => this.setState({ workDays: {}, extraPeople: 0 }),
+      setTrackPT: () => this.setState({ simTrack: 'pt' }), setTrackCP: () => this.setState({ simTrack: 'cp' }), setTrackBoth: () => this.setState({ simTrack: 'both' }),
+      ptTabBg: tabBg('pt'), ptTabFg: tabFg('pt'), cpTabBg: tabBg('cp'), cpTabFg: tabFg('cp'), bothTabBg: tabBg('both'), bothTabFg: tabFg('both'),
+      simTrackLabel: labelMap[tr], simRemStr: String(simRem), simCapStr: String(Math.round(cap)),
+      verdictTitle, verdictDetail,
+      verdictBg: onTrack ? '#e7f4ec' : '#fbeae8', verdictFg: onTrack ? '#1c6b41' : '#9a2f27', verdictBd: onTrack ? '#bfe3cd' : '#f1c9c3',
+      recValueStr: String(recValue), recNote, recColor, rateNeededStr: rateNeeded.toFixed(2),
+      hasOverride: !!this.state.asOf,
+      uploadOpen: this.state.uploadOpen,
+      openUpload: () => this.setState({ uploadOpen: true }),
+      closeUpload: () => this.setState({ uploadOpen: false, ptPending: null, cpPending: null }),
+      stopProp: e => e.stopPropagation(),
+      onPTFile: e => this.handleFile('pt', e.target.files[0]),
+      onCPFile: e => this.handleFile('cp', e.target.files[0]),
+      applyUpload: () => { if (canApply) this.applyUpload(); },
+      downloadDataFile: () => this.downloadDataFile(),
+      resetData: () => this.resetData(),
+      ptStatusLine, cpStatusLine, warnings, canApply,
+      ptSlotBd: ptP ? '#bfe3cd' : '#dde2e8', ptSlotBg: ptP ? '#f0f8f3' : '#fafbfc',
+      cpSlotBd: cpP ? '#bfd6ea' : '#dde2e8', cpSlotBg: cpP ? '#eff5fa' : '#fafbfc',
+      applyBg: canApply ? '#14181d' : '#c3ccd6', applyCursor: canApply ? 'pointer' : 'not-allowed'
+    };
+  }
+}
+</script>
+</body>
+</html>
